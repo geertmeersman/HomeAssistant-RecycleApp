@@ -319,6 +319,7 @@ class RecycleAppUpcomingSensor(RecycleAppDateSensor):
             date_format,
             entity_id_prefix,
         )
+        self._attr_icon = "mdi:truck-fast"
 
 
 class RecycleAppTodaySensor(RecycleAppDateSensor):
@@ -343,6 +344,7 @@ class RecycleAppTodaySensor(RecycleAppDateSensor):
             date_format,
             entity_id_prefix,
         )
+        self._attr_icon = "mdi:truck-check"
 
 
 class RecycleAppTomorrowSensor(RecycleAppDateSensor):
@@ -367,3 +369,4 @@ class RecycleAppTomorrowSensor(RecycleAppDateSensor):
             date_format,
             entity_id_prefix,
         )
+        self._attr_icon = "mdi:truck-delivery"
