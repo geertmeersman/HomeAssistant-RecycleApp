@@ -14,7 +14,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import FostPlusApi
-from .const import DEFAULT_DATE_FORMAT, DOMAIN
+from .const import DEFAULT_DATE_FORMAT, DOMAIN, MANUFACTURER, WEBSITE
 from .info import AppInfo
 
 PLATFORMS = [Platform.CALENDAR, Platform.SENSOR]
@@ -35,6 +35,28 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
 async def async_setup(hass: HomeAssistant, _: ConfigType) -> bool:
     """Set up the RecycleApp component from yaml configuration."""
     hass.data.setdefault(DOMAIN, {})
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Handle migration of a config entry to the latest version."""
+    version = config_entry.version
+    options = config_entry.options
+    data = config_entry.data
+    _LOGGER.debug("Migrating from version %s", version)
+    if version < 2:
+        recycling_park_zip_code = options.get("recyclingParkZipCode")
+
+        # Fix invalid recyclingParkZipCode if needed
+        if isinstance(recycling_park_zip_code, list):
+            _LOGGER.debug("Converting recyclingParkZipCode from list to single value")
+            options = {**options, "recyclingParkZipCode": recycling_park_zip_code[0]}
+
+        hass.config_entries.async_update_entry(
+            config_entry, data=data, options=options, version=2
+        )
+        _LOGGER.debug("Migration to version 2 completed")
+
     return True
 
 
@@ -126,8 +148,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry_type=DeviceEntryType.SERVICE,
         identifiers={(DOMAIN, unique_id)},
         name=config.get("name", "Collecte des poubelles"),
-        manufacturer="Fost Plus",
-        model="Recycle!",
+        manufacturer=MANUFACTURER,
+        model="Waste collection",
+        configuration_url=WEBSITE,
     )
     device_registry = dr.async_get(hass)
     for device_entry in dr.async_entries_for_config_entry(
